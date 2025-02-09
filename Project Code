@@ -1,0 +1,35 @@
+#define IR_EMITTER_PIN 9    // Pin connected to IR emitter
+#define IR_RECEIVER_PIN A0  // Pin connected to IR receiver (phototransistor)
+
+unsigned long lastPulseTime = 0;
+unsigned long bpm = 0;
+unsigned long pulseDuration = 0;
+int irValue = 0;
+int lastIrValue = 0;
+int pulseThreshold = 500; // Threshold value for detecting pulse
+
+void setup() {
+  Serial.begin(9600);           // Initialize serial communication
+  pinMode(IR_EMITTER_PIN, OUTPUT); // Set IR emitter as output
+  pinMode(IR_RECEIVER_PIN, INPUT); // Set IR receiver as input
+  digitalWrite(IR_EMITTER_PIN, HIGH); // Turn on IR emitter
+}
+
+void loop() {
+  irValue = analogRead(IR_RECEIVER_PIN); // Read the value from the IR receiver
+  
+  // Detect pulse based on the change in the IR value
+  if (irValue > pulseThreshold && lastIrValue <= pulseThreshold) {
+    unsigned long currentTime = millis();
+    pulseDuration = currentTime - lastPulseTime;
+    
+    if (pulseDuration > 300) { // If the pulse duration is reasonable
+      bpm = 60000 / pulseDuration;  // Calculate BPM (beats per minute)
+      lastPulseTime = currentTime;  // Update the last pulse time
+      Serial.print("BPM: ");
+      Serial.println(bpm);  // Print BPM to Serial Monitor
+    }
+  }
+
+  lastIrValue = irValue;  // Save the current IR value for next comparison
+}
